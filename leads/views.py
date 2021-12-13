@@ -24,11 +24,22 @@ class ListPageView(LoginRequiredMixin, generic.ListView):
     def get_queryset(self):
         user = self.request.user
         if user.is_organisor:
-            queryset = Lead.objects.filter(organisation=user.userprofile)
+            queryset = Lead.objects.filter(organisation=user.userprofile, agent__isnull=False)
         else:
             queryset = Lead.objects.filter(organisation=user.agent.organisation)   
             queryset = queryset.filter(agent__user=user)
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(ListPageView, self).get_context_data(**kwargs)
+        user = self.request.user
+        if user.is_organisor:
+            queryset = Lead.objects.filter(organisation=user.userprofile, agent__isnull=True)
+   
+        # context.update({
+        #     "unassigned_leads": queryset
+        # })
+        return context
 
 class ListDetailView(LoginRequiredMixin, generic.DetailView):
     template_name = "leads/lead_details.html"
